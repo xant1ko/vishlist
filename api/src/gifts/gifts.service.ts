@@ -21,7 +21,11 @@ export class GiftsService {
   }
 
   async findAll(owner: AuthenticatedUser): Promise<GiftPublic[]> {
-    const gifts = await this.giftsRepository.findAllByOwner(new ObjectId(owner.id));
+    return this.findAllByOwnerId(owner.id);
+  }
+
+  async findAllByOwnerId(ownerId: string): Promise<GiftPublic[]> {
+    const gifts = await this.giftsRepository.findAllByOwner(new ObjectId(ownerId));
     return gifts.map(gift => this.toPublic(gift));
   }
 

@@ -6,5 +6,6 @@ import { GiftsService } from './gifts.service';
 @Module({
   controllers: [GiftsController],
   providers: [GiftsRepository, GiftsService],
+  exports: [GiftsService],
 })
 export class GiftsModule {}
