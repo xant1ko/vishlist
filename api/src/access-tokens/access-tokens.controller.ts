@@ -13,9 +13,9 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ACCESS_TOKEN_COOKIE_NAME } from '../auth/strategies/jwt.strategy';
 import type { AuthenticatedUser } from '../auth/types/auth.type';
-import { GiftResponseDto } from '../gifts/dto/gift-response.dto';
 import { AccessTokensService } from './access-tokens.service';
 import { AccessTokenResponseDto } from './dto/access-token-response.dto';
+import { SharedGiftsResponseDto } from './dto/shared-gifts-response.dto';
 
 @ApiTags('gift access tokens')
 @Controller('gift-access-tokens')
@@ -35,9 +35,9 @@ export class AccessTokensController {
   @Get(':token/gifts')
   @ApiOperation({ summary: 'Получить подарки по токену доступа' })
   @ApiParam({ name: 'token', description: 'Годовой токен доступа к подаркам' })
-  @ApiOkResponse({ type: GiftResponseDto, isArray: true })
+  @ApiOkResponse({ type: SharedGiftsResponseDto })
   @ApiNotFoundResponse({ description: 'Токен не найден или истёк.' })
-  getSharedGifts(@Param('token') token: string): Promise<GiftResponseDto[]> {
+  getSharedGifts(@Param('token') token: string): Promise<SharedGiftsResponseDto> {
     return this.accessTokensService.getSharedGifts(token);
   }
 }

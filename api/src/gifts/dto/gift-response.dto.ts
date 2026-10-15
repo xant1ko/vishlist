@@ -13,6 +13,9 @@ export class GiftResponseDto {
   @ApiProperty({ example: ['https://example.com/gift'], type: [String] })
   links!: string[];
 
+  @ApiProperty({ example: false, description: 'Забронирован ли подарок.' })
+  is_reserved!: boolean;
+
   @ApiProperty({ example: '2026-10-15T10:00:00.000Z', format: 'date-time' })
   created_at!: Date;
 

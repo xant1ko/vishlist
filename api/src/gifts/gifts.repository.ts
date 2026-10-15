@@ -22,6 +22,30 @@ export class GiftsRepository implements OnModuleInit {
     return gift;
   }
 
+  countReservedBy(reservationId: string): Promise<number> {
+    return this.collection.countDocuments({ reservation_id: reservationId, is_reserved: true });
+  }
+
+  findById(id: ObjectId): Promise<GiftDocument | null> {
+    return this.collection.findOne({ _id: id });
+  }
+
+  async reserve(id: ObjectId, reservationId: string): Promise<GiftDocument | null> {
+    return this.collection.findOneAndUpdate(
+      { _id: id, is_reserved: { $ne: true } },
+      { $set: { is_reserved: true, reservation_id: reservationId, updated_at: new Date() } },
+      { returnDocument: 'after' },
+    );
+  }
+
+  async unreserve(id: ObjectId): Promise<GiftDocument | null> {
+    return this.collection.findOneAndUpdate(
+      { _id: id },
+      { $set: { is_reserved: false, updated_at: new Date() }, $unset: { reservation_id: '' } },
+      { returnDocument: 'after' },
+    );
+  }
+
   findAllByOwner(ownerId: ObjectId): Promise<GiftDocument[]> {
     return this.collection.find({ owner_id: ownerId }).sort({ created_at: -1 }).toArray();
   }
