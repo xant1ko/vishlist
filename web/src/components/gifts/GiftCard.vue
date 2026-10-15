@@ -25,6 +25,7 @@
               {{ gift.name }}
             </div>
             <v-btn
+              v-if="!readonly"
               aria-label="Редактировать желание"
               icon="mdi-pencil-outline"
               size="x-small"
@@ -76,6 +77,7 @@ import type { Gift } from '../../api/gifts'
 
 defineProps<{
   gift: Gift
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{

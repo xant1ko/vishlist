@@ -14,6 +14,8 @@
         <v-btn
           prepend-icon="mdi-share-variant-outline"
           variant="outlined"
+          :loading="accessTokensStore.isLoading"
+          @click="openShareModal"
         >
           Поделиться
         </v-btn>
@@ -67,23 +69,43 @@
       @remove="removeGift"
       @save="saveGift"
     />
+
+    <GiftShareModal
+      v-model="isShareModalOpen"
+      :error-message="accessTokenError"
+      :expires-at="shareExpiresAt"
+      :share-link="shareLink"
+    />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Gift, GiftFormData } from '../api/gifts'
 import GiftCard from '../components/gifts/GiftCard.vue'
 import GiftFormModal from '../components/gifts/GiftFormModal.vue'
+import GiftShareModal from '../components/gifts/GiftShareModal.vue'
+import { useAccessTokensStore } from '../stores/accessTokensStore'
 import { useGiftsStore } from '../stores/giftsStore'
 
 const giftsStore = useGiftsStore()
+const accessTokensStore = useAccessTokensStore()
 
 const isGiftModalOpen = ref(false)
+const isShareModalOpen = ref(false)
 const editedGift = ref<Gift | null>(null)
 
 const { error, gifts, isLoading, isSaving } = storeToRefs(giftsStore)
+const { error: accessTokenError, token } = storeToRefs(accessTokensStore)
+const shareLink = computed(() => token.value
+  ? `${window.location.origin}/shared/${token.value.token}`
+  : '',
+)
+const shareExpiresAt = computed(() => token.value
+  ? new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long' }).format(new Date(token.value.expires_at))
+  : '',
+)
 
 function openCreateModal (): void {
   giftsStore.clearError()
@@ -95,6 +117,11 @@ function openEditModal (gift: Gift): void {
   giftsStore.clearError()
   editedGift.value = gift
   isGiftModalOpen.value = true
+}
+
+async function openShareModal (): Promise<void> {
+  isShareModalOpen.value = true
+  await accessTokensStore.createToken()
 }
 
 async function saveGift (data: GiftFormData): Promise<void> {

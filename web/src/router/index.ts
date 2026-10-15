@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/authStore'
 import AuthView from '../views/AuthView.vue'
 import HomeView from '../views/HomeView.vue'
 import LandingView from '../views/LandingView.vue'
+import SharedGiftsView from '../views/SharedGiftsView.vue'
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,11 @@ export const router = createRouter({
           component: AuthView,
         },
       ],
+    },
+    {
+      path: '/shared/:token',
+      name: 'shared-gifts',
+      component: SharedGiftsView,
     },
     {
       path: '/app',
