@@ -1,0 +1,68 @@
+# Vishlist API доступен только через Service и внешний Ingress.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vishlist-api
+spec:
+  selector:
+    matchLabels:
+      app: vishlist-api
+  template:
+    metadata:
+      labels:
+        app: vishlist-api
+    spec:
+      containers:
+        - name: api
+          image: xant1ko/vishlist-api:v1 # Образ API из Docker Hub.
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "8000"
+            - name: MONGO_URI
+              value: mongodb://mongodb:27017 # Внутренний адрес Service MongoDB.
+            - name: MONGO_AUTH_SOURCE
+              value: admin
+            - name: PASSWORD_MIN_LENGTH
+              value: "8"
+            - name: PASSWORD_MAX_LENGTH
+              value: "128"
+            - name: JWT_EXPIRES_IN
+              value: 1d
+            - name: JWT_COOKIE_SECURE
+              value: "true" # HTTPS включён через Traefik и сертификат cert-manager.
+            - name: JWT_COOKIE_MAX_AGE_MS
+              value: "86400000"
+            - name: MONGO_DATABASE
+              valueFrom: {secretKeyRef: {name: vishlist-secrets, key: MONGO_DATABASE}}
+            - name: MONGO_USERNAME
+              valueFrom: {secretKeyRef: {name: vishlist-secrets, key: MONGO_INITDB_ROOT_USERNAME}}
+            - name: MONGO_PASSWORD
+              valueFrom: {secretKeyRef: {name: vishlist-secrets, key: MONGO_INITDB_ROOT_PASSWORD}}
+            - name: JWT_SECRET
+              valueFrom: {secretKeyRef: {name: vishlist-secrets, key: JWT_SECRET}}
+          readinessProbe: # Трафик пойдёт в Pod только после проверки API и MongoDB.
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+          resources: # Обязательны ResourceQuota namespace kls-2.
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vishlist-api
+spec:
+  selector:
+    app: vishlist-api
+  ports:
+    - port: 8000

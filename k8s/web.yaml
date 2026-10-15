@@ -1,0 +1,37 @@
+# Vue-сборка отдаётся Nginx из образа web/Dockerfile.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vishlist-web
+spec:
+  selector:
+    matchLabels:
+      app: vishlist-web
+  template:
+    metadata:
+      labels:
+        app: vishlist-web
+    spec:
+      containers:
+        - name: web
+          image: xant1ko/vishlist-web:v1 # Образ web из Docker Hub.
+          ports:
+            - containerPort: 80
+          resources: # Обязательны ResourceQuota namespace kls-2.
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vishlist-web
+spec:
+  selector:
+    app: vishlist-web
+  ports:
+    - port: 80

@@ -1,0 +1,8 @@
+# Точка входа: `kubectl apply -k k8s` применяет всё в существующий namespace kls-2.
+namespace: kls-2
+resources:
+  - mongodb.yaml
+  - api.yaml
+  - web.yaml
+  - ingress.yaml
+# Secret намеренно исключён: создайте его отдельно по файлу vishlist-secrets.example.yaml.
