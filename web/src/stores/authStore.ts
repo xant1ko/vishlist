@@ -1,10 +1,11 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import * as authApi from '../api/auth'
+import type { AuthUser } from '../api/auth'
+import { authService } from '../services/authService'
 
 export const useAuthStore = defineStore('auth', () => {
   const isAuth = ref(false)
-  const user = ref<authApi.AuthUser | null>(null)
+  const user = ref<AuthUser | null>(null)
   const isLoading = ref(false)
 
   function startWork (): void {
@@ -12,18 +13,18 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login (login: string, password: string): Promise<void> {
-    await authenticate(() => authApi.login({ login, password }))
+    await authenticate(() => authService.login({ login, password }))
   }
 
   async function register (login: string, password: string): Promise<void> {
-    await authenticate(() => authApi.register({ login, password }))
+    await authenticate(() => authService.register({ login, password }))
   }
 
   async function restoreSession (): Promise<void> {
     isLoading.value = true
 
     try {
-      user.value = await authApi.getCurrentUser()
+      user.value = await authService.getCurrentUser()
       isAuth.value = true
     } catch {
       isAuth.value = false
@@ -37,7 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
 
     try {
-      await authApi.logout()
+      await authService.logout()
     } finally {
       isAuth.value = false
       user.value = null
@@ -45,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function authenticate (request: () => Promise<{ user: authApi.AuthUser }>): Promise<void> {
+  async function authenticate (request: () => Promise<{ user: AuthUser }>): Promise<void> {
     isLoading.value = true
 
     try {
