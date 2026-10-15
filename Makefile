@@ -1,6 +1,11 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev dev-api dev-web dev-db-up dev-db-down dev-db-logs dev-db-status build test
+DOCKER_NAMESPACE ?= xant1ko
+IMAGE_TAG ?= v1
+API_IMAGE := $(DOCKER_NAMESPACE)/vishlist-api:$(IMAGE_TAG)
+WEB_IMAGE := $(DOCKER_NAMESPACE)/vishlist-web:$(IMAGE_TAG)
+
+.PHONY: help install dev dev-api dev-web dev-db-up dev-db-down dev-db-logs dev-db-status build test docker-build docker-push
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*##"}; /^[a-zA-Z_-]+:.*##/ {printf "%-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -40,3 +45,11 @@ build: ## Собрать API и frontend
 
 test: ## Запустить unit-тесты API
 	npm --prefix api run test
+
+docker-build: ## Собрать образы API и frontend для Docker Hub
+	docker build --tag $(API_IMAGE) api
+	docker build --tag $(WEB_IMAGE) web
+
+docker-push: docker-build ## Собрать и отправить образы в Docker Hub
+	docker push $(API_IMAGE)
+	docker push $(WEB_IMAGE)

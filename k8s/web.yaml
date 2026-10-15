@@ -13,11 +13,25 @@ spec:
       labels:
         app: vishlist-web
     spec:
+      imagePullSecrets:
+        - name: dockerhub-credentials # Secret с Docker Hub access token создаётся вне Git.
       containers:
         - name: web
           image: xant1ko/vishlist-web:v1 # Образ web из Docker Hub.
           ports:
             - containerPort: 80
+          startupProbe: # Даёт Nginx до минуты на запуск.
+            tcpSocket:
+              port: 80
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 12
+          livenessProbe: # Перезапускает контейнер, если Nginx перестал принимать соединения.
+            tcpSocket:
+              port: 80
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources: # Обязательны ResourceQuota namespace kls-2.
             requests:
               cpu: 50m

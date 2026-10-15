@@ -44,6 +44,18 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data/db # Каталог данных MongoDB сохраняется на PVC.
+          startupProbe: # Даёт MongoDB до двух минут на инициализацию базы.
+            tcpSocket:
+              port: 27017
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 24
+          livenessProbe: # Перезапускает контейнер, если MongoDB перестала принимать соединения.
+            tcpSocket:
+              port: 27017
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources: # Обязательны ResourceQuota namespace kls-2.
             requests:
               cpu: 200m

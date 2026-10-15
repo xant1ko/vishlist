@@ -14,7 +14,7 @@ Ingress. Такое разделение повторяет назначение
 
 ## Перед началом
 
-1. Манифесты используют публичные образы Docker Hub `xant1ko/vishlist-api:v1` и
+1. Манифесты используют приватные образы Docker Hub `xant1ko/vishlist-api:v1` и
    `xant1ko/vishlist-web:v1`; перед деплоем соберите и загрузите их.
 2. Создайте три DNS-записи `A` для `iwant.xant1ko.ru`: `185.174.166.70`,
    `78.24.181.191` и `80.93.187.150`. Это публичные IP Traefik нового кластера.
@@ -25,6 +25,16 @@ Ingress. Такое разделение повторяет назначение
 ## Последовательность применения
 
 ```bash
+# Войти в Docker Hub через access token и опубликовать приватные образы.
+docker login -u xant1ko
+make docker-push IMAGE_TAG=v1
+
+# Создать Secret для скачивания приватных образов. Не сохраняйте token в Git.
+kubectl -n kls-2 create secret docker-registry dockerhub-credentials \\
+  --docker-server=https://index.docker.io/v1/ \\
+  --docker-username=xant1ko \\
+  --docker-password='DOCKER_HUB_ACCESS_TOKEN'
+
 # Создать реальный Secret, подготовленный вне репозитория.
 kubectl -n kls-2 apply -f /secure/path/vishlist-secrets.yaml
 

@@ -13,6 +13,8 @@ spec:
       labels:
         app: vishlist-api
     spec:
+      imagePullSecrets:
+        - name: dockerhub-credentials # Secret с Docker Hub access token создаётся вне Git.
       containers:
         - name: api
           image: xant1ko/vishlist-api:v1 # Образ API из Docker Hub.
@@ -49,6 +51,20 @@ spec:
             httpGet:
               path: /api/v1/health
               port: 8000
+          startupProbe: # Даёт API и MongoDB до двух минут на запуск.
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 24
+          livenessProbe: # Перезапускает контейнер, если API перестал отвечать.
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources: # Обязательны ResourceQuota namespace kls-2.
             requests:
               cpu: 100m
