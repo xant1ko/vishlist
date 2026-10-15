@@ -32,7 +32,27 @@
               variant="text"
               @click="emit('edit', gift)"
             />
+            <v-btn
+              v-if="canReserve"
+              :aria-label="gift.is_reserved ? 'Подарок уже забронирован' : 'Забронировать подарок'"
+              :color="gift.is_reserved ? 'success' : undefined"
+              :disabled="gift.is_reserved"
+              :icon="gift.is_reserved ? 'mdi-heart' : 'mdi-heart-outline'"
+              size="x-small"
+              variant="text"
+              @click="emit('reserve', gift)"
+            />
           </div>
+
+          <v-chip
+            v-if="gift.is_reserved && !canReserve"
+            color="success"
+            size="x-small"
+            variant="tonal"
+            class="mt-2"
+          >
+            Забронировано
+          </v-chip>
 
           <div
             v-if="gift.description"
@@ -76,12 +96,14 @@
 import type { Gift } from '../../api/gifts'
 
 defineProps<{
+  canReserve?: boolean
   gift: Gift
   readonly?: boolean
 }>()
 
 const emit = defineEmits<{
   edit: [gift: Gift]
+  reserve: [gift: Gift]
 }>()
 
 function getSafeUrl (value: string): string | undefined {

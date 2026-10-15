@@ -3,6 +3,7 @@ export interface Gift {
   name: string
   description: string
   links: string[]
+  is_reserved: boolean
   created_at: string
   updated_at: string
 }

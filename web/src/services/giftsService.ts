@@ -21,6 +21,14 @@ export const giftsService = {
     })
   },
 
+  updateReservation (id: string, isReserved: boolean): Promise<Gift> {
+    return request<Gift>({
+      url: `/gifts/${id}/reservation`,
+      method: 'PATCH',
+      data: { is_reserved: isReserved },
+    })
+  },
+
   update (id: string, data: GiftFormData): Promise<Gift> {
     return request<Gift>({
       url: `/gifts/${id}`,
