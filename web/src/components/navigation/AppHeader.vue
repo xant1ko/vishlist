@@ -5,11 +5,14 @@
   >
     <template #prepend>
       <div
-        class="d-flex align-center logo-wrapper ml-4"
+        class="d-flex align-center logo-wrapper brand ml-4"
         @click="goHome"
       >
-        <v-icon icon="mdi-gift-outline" size="24" />
-        <span class="ml-2 text-h6">Vishlist</span>
+          <v-icon color="primary" size="28">
+            mdi-gift-outline
+          </v-icon>
+
+          <span>хочу</span>
       </div>
     </template>
 
@@ -52,5 +55,16 @@ async function signOut (): Promise<void> {
 
 .logo-wrapper:hover {
   opacity: 1;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(var(--v-theme-on-background));
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-decoration: none;
 }
 </style>
