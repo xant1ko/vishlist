@@ -1,6 +1,6 @@
 # Kubernetes-деплой Vishlist
 
-Этот каталог переносит production-схему из `compose.yaml` в Kubernetes namespace `kls-2`:
+Этот каталог развёртывает Vishlist в отдельный Kubernetes namespace `vishlist`:
 
 ```text
 Интернет → Traefik Ingress (HTTPS) → /api/* → vishlist-api:8000 → mongodb:27017
@@ -16,11 +16,10 @@ Ingress. Такое разделение повторяет назначение
 
 1. Манифесты используют приватные образы Docker Hub `xant1ko/vishlist-api:v1` и
    `xant1ko/vishlist-web:v1`; перед деплоем соберите и загрузите их.
-2. Создайте три DNS-записи `A` для `iwant.xant1ko.ru`: `185.174.166.70`,
-   `78.24.181.191` и `80.93.187.150`. Это публичные IP Traefik нового кластера.
+2. Создайте DNS-запись `A` для `iwant.xant1ko.ru`, указывающую на `135.106.139.37`.
 3. Скопируйте Secret-шаблон вне Git, замените `CHANGE_ME_*` и примените копию.
-4. Получите сертификат Let's Encrypt отдельно и создайте TLS Secret `vishlist-tls`.
-   В новом кластере cert-manager не установлен.
+4. В кластере уже установлен cert-manager с готовым ClusterIssuer `letsencrypt-prod`;
+   сертификат `vishlist-tls` будет выпущен автоматически после применения Ingress.
 
 ## Последовательность применения
 
@@ -29,21 +28,19 @@ Ingress. Такое разделение повторяет назначение
 docker login -u xant1ko
 make docker-push IMAGE_TAG=v1
 
+# Создать namespace приложения.
+kubectl apply -f k8s/namespace.yaml
+
 # Создать Secret для скачивания приватных образов. Не сохраняйте token в Git.
-kubectl -n kls-2 create secret docker-registry dockerhub-credentials \\
+kubectl -n vishlist create secret docker-registry dockerhub-credentials \\
   --docker-server=https://index.docker.io/v1/ \\
   --docker-username=xant1ko \\
   --docker-password='DOCKER_HUB_ACCESS_TOKEN'
 
 # Создать реальный Secret, подготовленный вне репозитория.
-kubectl -n kls-2 apply -f /secure/path/vishlist-secrets.yaml
+kubectl -n vishlist apply -f /secure/path/vishlist-secrets.yaml
 
-# Загрузить уже выданный сертификат и ключ в TLS Secret для Ingress.
-kubectl -n kls-2 create secret tls vishlist-tls \\
-  --cert=/secure/path/fullchain.pem \\
-  --key=/secure/path/privkey.pem
-
-# Применить все versioned манифесты; реальный Secret уже создан отдельной командой.
+# Применить namespace, workload'ы и Ingress. cert-manager сам создаст vishlist-tls.
 kubectl apply -k k8s
 ```
 
@@ -54,14 +51,14 @@ kubectl apply -k k8s
 
 ```bash
 # Дождаться обновления всех workload'ов.
-kubectl -n kls-2 rollout status statefulset/mongodb
-kubectl -n kls-2 rollout status deployment/vishlist-api
-kubectl -n kls-2 rollout status deployment/vishlist-web
+kubectl -n vishlist rollout status statefulset/mongodb
+kubectl -n vishlist rollout status deployment/vishlist-api
+kubectl -n vishlist rollout status deployment/vishlist-web
 
 # Проверить Pod'ы, Service, PVC и публичное правило.
-kubectl -n kls-2 get pods,svc,pvc,ingress
+kubectl -n vishlist get pods,svc,pvc,ingress,certificate
 
-# Проверить endpoint после того, как cert-manager выдаст сертификат.
+# Проверить endpoint после выдачи сертификата cert-manager.
 curl --fail --silent --show-error https://iwant.xant1ko.ru/api/v1/health
 ```
 
@@ -71,7 +68,7 @@ MongoDB не публикуется публично. Для временног�
 где есть kubeconfig, используйте:
 
 ```bash
-kubectl -n kls-2 port-forward service/mongodb 27017:27017
+kubectl -n vishlist port-forward service/mongodb 27017:27017
 ```
 
 После этого подключайтесь локально к `mongodb://127.0.0.1:27017`. PVC создаётся
@@ -80,8 +77,9 @@ StorageClass `local-path` по умолчанию. Этот класс хран�
 production с отказоустойчивостью потребуется replica set MongoDB и сетевое
 хранилище с подходящей политикой резервного копирования.
 
-## TLS без cert-manager
+## TLS
 
-В этом кластере cert-manager отсутствует. После получения сертификата Let's
-Encrypt создайте или обновите Secret `vishlist-tls` вручную. Сертификаты Let’s Encrypt
-действуют 90 дней, поэтому продление и обновление Secret нужно организовать отдельно.
+Ingress содержит аннотацию `cert-manager.io/cluster-issuer: letsencrypt-prod`.
+cert-manager создаёт и продлевает TLS Secret `vishlist-tls` автоматически. Для
+`iwant.xant1ko.ru` DNS-запись должна указывать на `135.106.139.37`, иначе выпуск
+сертификата не завершится.

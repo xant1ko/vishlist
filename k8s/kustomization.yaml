@@ -1,6 +1,7 @@
-# Точка входа: `kubectl apply -k k8s` применяет всё в существующий namespace kls-2.
-namespace: kls-2
+# Точка входа: `kubectl apply -k k8s` создаёт namespace и применяет все ресурсы.
+namespace: vishlist
 resources:
+  - namespace.yaml
   - mongodb.yaml
   - api.yaml
   - web.yaml

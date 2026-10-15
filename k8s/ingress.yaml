@@ -3,13 +3,15 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vishlist
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: traefik # Обнаруженный Ingress Controller в кластере.
+  ingressClassName: traefik
   tls:
-    - hosts: [iwant.xant1ko.ru] # Домен должен указывать на IP внешнего Traefik нового кластера.
-      secretName: vishlist-tls # TLS Secret создаётся вручную из сертификата Let's Encrypt.
+    - hosts: [iwant.xant1ko.ru]
+      secretName: vishlist-tls
   rules:
-    - host: iwant.xant1ko.ru # Основной публичный адрес приложения.
+    - host: iwant.xant1ko.ru
       http:
         paths:
           - path: /api
